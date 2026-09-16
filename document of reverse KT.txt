@@ -1,0 +1,746 @@
+BFL CMS API Specification - Presentation Explanation with Real-Time Scenarios
+
+Document: BFL_CMS_API Specification Document.V1.15_Updated 20 JUN 24 1.doc
+
+1. Introduction
+What is BFL CMS?
+
+The CMS (Card Management System) is a wallet and prepaid card management platform used by Bajaj Finserv.
+
+It provides APIs for:
+
+Customer onboarding
+Wallet management
+KYC management
+Credit/Debit transactions
+Fund transfers
+Balance inquiry
+Statements
+Fastag operations
+Limit management
+Lien management
+End-to-End User Journey
+Login
+   ↓
+Dedupe Check
+   ↓
+Customer Sign-Up
+   ↓
+Profile Update
+   ↓
+Credit Wallet
+   ↓
+Debit/Spend
+   ↓
+Balance Inquiry
+   ↓
+Transaction History
+   ↓
+Wallet Operations
+
+2. Common Framework Concepts
+Request Header
+
+Every API contains:
+
+Institution ID
+Channel Identifier
+Request Type
+User ID
+Request Date/Time
+Request Reference Number
+Example
+
+Customer Raj registers a wallet from Mobile App.
+
+{
+ "institutionId":1001,
+ "channelIdentifier":"MB",
+ "requestType":"SU"
+}
+
+Authentication Concept
+
+Before invoking any API:
+
+Step 1
+
+Call Login API
+
+Step 2
+
+Receive AUTH TOKEN
+
+Step 3
+
+Use token in all APIs
+
+Scenario
+
+Customer opens Bajaj App.
+
+App calls Login API
+Receives Auth Token
+Uses token for Signup, Credit, Debit, Inquiry APIs
+3. Login API (LA)
+Purpose
+
+Generate authentication token.
+
+Business Use
+
+Secure API communication.
+
+Real Scenario
+
+Employee logs into CMS Portal.
+
+Login Request
+      ↓
+CMS Validates
+      ↓
+AUTH TOKEN Generated
+      ↓
+All APIs use Token
+
+4. Dedupe Check API (DD)
+Purpose
+
+Prevent duplicate wallet creation.
+
+Checks:
+
+Mobile Number
+PAN
+Passport
+Driving License
+Name Matching
+Scenario
+
+Customer:
+
+Mobile: 9876543210
+PAN: ABCDE1234F
+
+Before Signup:
+
+CMS verifies if customer already exists.
+
+Result
+Success
+
+No wallet exists.
+
+Wallet Creation Allowed
+
+Failure
+
+Wallet already exists.
+
+Existing Wallet Details Returned
+
+5. Customer Sign-Up API (SU)
+Purpose
+
+Create wallet/customer account.
+
+Concepts
+Customer Information
+Name
+DOB
+Gender
+Mobile
+Email
+KYC
+FK (Full KYC)
+MK (Minimum KYC)
+RK (Restricted KYC)
+NK (No KYC)
+Scenario
+
+Rahul downloads Bajaj Wallet App.
+
+Provides:
+
+PAN
+Mobile
+Address
+
+System creates:
+
+Wallet ID
+Customer ID
+KYC Mapping
+Product Code
+
+Output
+Customer ID = C12345
+Wallet ID = W56789
+
+6. Profile Update API (PU)
+Purpose
+
+Modify customer profile.
+
+Scenario
+
+Customer changes:
+
+Mobile Number
+Address
+Email
+KYC Status
+
+Example:
+
+Minimum KYC
+      ↓
+Full KYC
+
+
+System updates all CMS records.
+
+7. Beneficiary Registration API (BR)
+Purpose
+
+Register transfer beneficiaries.
+
+Scenario
+
+Customer wants to transfer money to friend.
+
+Beneficiary:
+
+Name : Arun
+Beneficiary ID : B123
+
+
+Operation Types
+
+Type	MeaningAD	Add
+RM	Remove
+8. Credit API (CR)
+Purpose
+
+Add money into wallet.
+
+Credit Types
+Identifier	Meaning01	Topup
+07	Refund
+08	Cashback
+06	Reversal
+FTW	Fastag Credit
+Scenario 1
+
+Customer loads:
+
+₹5,000 into wallet
+
+Available Balance
+0 → 5000
+
+Scenario 2
+
+Merchant Refund
+
+Amazon Refund ₹750
+
+
+Wallet credited.
+
+9. Debit API (DR)
+Purpose
+
+Deduct money from wallet.
+
+Types
+BBPS Payment
+Merchant Spend
+UPI
+Bank Transfer
+Fastag Debit
+Scenario
+
+Wallet Balance ₹5000
+
+Recharge:
+
+₹1000
+
+5000 - 1000
+= 4000
+
+
+Debit Success.
+
+10. Wallet to Wallet Transfer (WT)
+Purpose
+
+Transfer funds between customers.
+
+Scenario
+
+Rahul transfers
+
+₹2000
+
+to Arun.
+
+Rahul Wallet
+₹5000 → ₹3000
+
+Arun Wallet
+₹1000 → ₹3000
+
+11. Wallet Operations API (WO)
+Purpose
+
+Manage Wallet Status.
+
+Operations
+Code	MeaningBW	Block
+UW	Unblock
+HW	Permanently Block
+DW	Delete
+FW	Financial Block
+Scenario
+
+Mobile Lost.
+
+Customer requests:
+
+HW
+Permanent Block
+
+
+Fraud prevention activated.
+
+12. Wallet Inquiry / View Card (VC)
+Purpose
+
+Fetch full customer details.
+
+Information Returned
+Customer Name
+Mobile
+Wallet ID
+Card Details
+KYC
+Balance
+Scenario
+
+Customer Service Agent wants complete profile.
+
+Calls VC API.
+
+13. Balance Inquiry API (BI)
+Purpose
+
+Check wallet balances.
+
+Scenario
+
+Customer clicks
+
+"Check Balance"
+
+Result:
+
+Primary Wallet : ₹2,500
+Cashback Wallet : ₹800
+Gift Card Wallet : ₹300
+
+14. Transaction History API (TH)
+Purpose
+
+Get detailed statement.
+
+Filters Available
+Date Range
+Channel
+UPI
+BBPS
+Wallet Transfer
+Scenario
+
+Customer wants transactions between
+
+1-Jun-2024 and 30-Jun-2024.
+
+API returns complete statement.
+
+15. Mini Statement API (MS)
+Purpose
+
+Get last 10 transactions.
+
+Scenario
+
+ATM Mini Statement Concept
+
+Returns:
+
+Last 10 Successful Transactions
+
+
+Example:
+
+CR ₹500
+DR ₹100
+DR ₹50
+WT ₹300
+
+16. Transaction Inquiry API (TI)
+Purpose
+
+Check status of a particular transaction.
+
+Scenario
+
+Customer claims:
+
+"Money debited but recharge failed"
+
+Support team checks:
+
+RRN
+Auth Code
+
+
+Result:
+
+SUCCESS / FAILED / REVERSED
+
+17. Home Screen API (HS)
+Purpose
+
+Single dashboard API.
+
+Combines:
+
+Profile
+Balance
+Recent Transactions
+Scenario
+
+When customer opens app homepage.
+
+One API fetches everything.
+
+Name
+Balance
+Recent Transactions
+KYC Status
+
+18. Limit Check API (LC)
+Purpose
+
+Verify wallet limits.
+
+Checks
+Daily Limit
+Weekly Limit
+Monthly Limit
+Yearly Limit
+Scenario
+
+Wallet KYC Limit:
+
+₹1,00,000
+
+Current Balance:
+
+₹99,500
+
+Customer tries:
+
+₹1000 Credit
+
+Result:
+
+Limit Exceeded
+
+
+Transaction blocked.
+
+19. Limit Update API (LU)
+Purpose
+
+Customer changes spend limits.
+
+Scenario
+
+Default Daily Limit
+
+₹20,000
+
+Customer updates:
+
+₹10,000
+
+New limit applied.
+
+20. Lien Marking API (LM)
+Purpose
+
+Hold funds temporarily.
+
+Important Concept
+
+Money is Reserved
+
+Not Actually Debited
+
+Scenario
+
+Fastag Toll Pending
+
+Wallet:
+
+₹1000
+
+Lien:
+
+₹300
+
+Result:
+
+Available = ₹700
+
+Ledger = ₹1000
+
+
+₹300 kept on hold.
+
+21. Lien Release API (LR)
+Purpose
+
+Release held amount.
+
+Scenario
+
+Merchant transaction cancelled.
+
+Held:
+
+₹300
+
+Released.
+
+Available ₹700 → ₹1000
+
+
+Funds restored.
+
+22. Multiple Reversal API (MR)
+Purpose
+
+Reverse multiple debit transactions.
+
+Scenario
+
+System issue happened.
+
+3 wrong debits:
+
+₹100
+₹200
+₹300
+
+
+Total ₹600 reversed.
+
+23. Fastag Inquiry API (FI)
+Purpose
+
+Fetch Fastag transactions.
+
+Scenario
+
+Customer wants toll usage.
+
+Returns:
+
+Fastag ID
+Vehicle
+Amount
+Date
+Toll Plaza
+
+24. Fastag Profile Update API (FU)
+Purpose
+
+Update Fastag details.
+
+Scenario
+
+Customer changes vehicle number.
+
+Old Vehicle
+TN01AB1234
+
+New Vehicle
+TN10XY9876
+
+
+CMS updates Fastag profile.
+
+25. Fastag Webhook Inquiry API (FW)
+Purpose
+
+Track failed Fastag webhooks.
+
+Scenario
+
+Toll transaction notification failed.
+
+System checks:
+
+Event ID
+Failure Reason
+Retry Details
+
+26. Transaction Breakup Details API (TB)
+Purpose
+
+Display wallet-wise transaction hunting.
+
+Concept
+
+One transaction may consume money from:
+
+Primary Wallet
+Cashback Wallet
+Gift Wallet
+Scenario
+
+Purchase
+
+₹800
+
+Hunting result:
+
+Cashback Wallet : ₹300
+Gift Wallet : ₹200
+Primary Wallet : ₹300
+
+
+Total:
+
+₹800
+
+Breakup shown.
+
+27. Inter Wallet Transfer API (IT)
+Purpose
+
+Move money between customer's own wallets.
+
+Scenario
+
+Customer moves money:
+
+Primary Wallet
+       ↓
+Fastag Wallet
+
+
+Transfer:
+
+₹1000
+
+No external beneficiary involved.
+
+28. Merchant Inquiry API (MI)
+Purpose
+
+Fetch merchant wallet/card details.
+
+Scenario
+
+Merchant wants to verify:
+
+Gift Card Status
+Balance
+Expiry
+
+
+API returns merchant transaction information.
+
+Important KYC Concepts
+KYC Type	MeaningFK	Full KYC
+MK	Minimum KYC
+RK	Restricted KYC
+NK	No KYC
+Example
+
+Full KYC
+
+Aadhaar
+PAN
+Address Verified
+
+Advantages:
+
+Higher limits
+More transactions
+Important Transaction Codes
+Code	MeaningCR	Credit
+DR	Debit
+WT	Wallet Transfer
+PA	Bank Transfer
+PM	BBPS Payment
+MS	Merchant Spend
+CB	Cashback
+RF	Refund
+FT	Fastag
+LM	Lien Mark
+LR	Lien Release
+Important Payment Modes
+Mode	DescriptionCash	
+Credit Card	
+Debit Card	
+Net Banking	
+Wallet	
+UPI	
+Cashback	
+Voucher	
+EMI	
+Final Presentation Summary Slide
+Customer Lifecycle
+Login
+ ↓
+Dedupe Check
+ ↓
+Sign Up
+ ↓
+Profile Update
+ ↓
+Credit Wallet
+ ↓
+Debit / Spend
+ ↓
+Transfer
+ ↓
+Balance Inquiry
+ ↓
+Statement
+ ↓
+Limit Management
+ ↓
+Fastag Management
+
+Key Business Modules
+Authentication
+Customer Onboarding
+KYC Management
+Wallet Management
+Transaction Processing
+Fund Transfer
+Balance & Statements
+Limits Management
+Lien Management
+Fastag Management
+Merchant Services
+
+This structure can directly be used to create a 25-30 slide technical presentation for training, knowledge transfer, or project onboarding.
